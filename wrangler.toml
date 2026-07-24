@@ -5,20 +5,23 @@ compatibility_date = "2025-01-01"
 # the JWKS fetch — fetch() can only reach public addresses, blocking SSRF.
 compatibility_flags = ["nodejs_compat_v2", "global_fetch_strictly_public"]
 
+# TODO(ghostery): confirm the custom domain routed to this Worker in Ghostery's Cloudflare.
 routes = [
-  { pattern = "plausible-mcp.sentry.dev", custom_domain = true }
+  { pattern = "plausible-mcp.ghostery.com", custom_domain = true }
 ]
 
 [vars]
 # Email domain(s) allowed to sign in to /internal (comma-separated, "@" optional).
 # Enforced in code in ADDITION to the upstream Access policy. Self-hosting? Set your own.
-ALLOWED_EMAIL_DOMAIN = "sentry.io"
+ALLOWED_EMAIL_DOMAIN = "ghostery.com"
 # Cloudflare Access team domain — verifies the Cf-Access-Jwt-Assertion JWKS + issuer.
 # Not a secret (public JWKS URL); must match the team the Access app lives in. No slash.
-CF_ACCESS_TEAM_DOMAIN = "https://getsentry.cloudflareaccess.com"
+# TODO(ghostery): verify Ghostery's Cloudflare Access team domain.
+CF_ACCESS_TEAM_DOMAIN = "https://ghostery.cloudflareaccess.com"
 # The Access application's Application Audience (AUD) tag — checked against the token
 # `aud`. Not a secret (an app identifier, not a credential).
-CF_ACCESS_AUD = "156afdfa9b601e73fce11ab794c6865d6a7f376969c96318ba125e3c2c77517c"
+# TODO(ghostery): set the AUD of Ghostery's /internal Access application.
+CF_ACCESS_AUD = "REPLACE_WITH_GHOSTERY_ACCESS_AUD"
 
 [dev]
 port = 8787
