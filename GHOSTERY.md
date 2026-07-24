@@ -82,8 +82,23 @@ First deploy lands on `plausible-mcp.<account>.workers.dev`. That URL is all the
 To front it with `plausible-mcp.ghostery.com` instead, put the zone on Cloudflare and uncomment
 the `routes` block in `wrangler.toml`.
 
-No secrets are required for `/mcp`. Optionally set `PLAUSIBLE_DEFAULT_SITE_ID` in `wrangler.toml`
-so callers can omit `site_id` (the whole team queries one site).
+No secrets are required for `/mcp`. `PLAUSIBLE_DEFAULT_SITE_ID` in `wrangler.toml` defaults every
+query to the `ghostery.com` Plausible site so callers can omit `site_id`.
+
+### Deploy on push (CI/CD)
+
+`.github/workflows/deploy.yml` runs typecheck + build + test and then `wrangler deploy` on every
+push to `ghostery` (and via manual **Run workflow**). It's gated on two repository secrets — until
+they're set, the deploy step skips with a warning and the run stays green:
+
+```bash
+# Create a Cloudflare API token with the "Edit Cloudflare Workers" template, then:
+gh secret set CLOUDFLARE_API_TOKEN   --repo ghostery/plausible-mcp   # paste the token
+gh secret set CLOUDFLARE_ACCOUNT_ID  --repo ghostery/plausible-mcp   # from `wrangler whoami`
+```
+
+After that, merging to `ghostery` deploys automatically. Local `pnpm deploy` still works for
+out-of-band deploys.
 
 ### Connecting a client (per team member)
 
