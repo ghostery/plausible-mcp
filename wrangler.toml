@@ -14,8 +14,7 @@ compatibility_flags = ["nodejs_compat_v2", "global_fetch_strictly_public"]
 
 [vars]
 # Default Plausible site so BYOK callers never have to pass site_id (team queries one site).
-# TODO(ghostery): confirm the exact site domain as registered in Plausible, then uncomment.
-# PLAUSIBLE_DEFAULT_SITE_ID = "ghostery.com"
+PLAUSIBLE_DEFAULT_SITE_ID = "ghostery.com"
 
 # --- /internal (SSO connector) config — DORMANT ---
 # We deploy /mcp only; /internal fails closed without these + a Cloudflare Access app in
