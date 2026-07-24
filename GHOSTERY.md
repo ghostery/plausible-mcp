@@ -85,20 +85,7 @@ the `routes` block in `wrangler.toml`.
 No secrets are required for `/mcp`. `PLAUSIBLE_DEFAULT_SITE_ID` in `wrangler.toml` defaults every
 query to the `ghostery.com` Plausible site so callers can omit `site_id`.
 
-### Deploy on push (CI/CD)
-
-`.github/workflows/deploy.yml` runs typecheck + build + test and then `wrangler deploy` on every
-push to `ghostery` (and via manual **Run workflow**). It's gated on two repository secrets — until
-they're set, the deploy step skips with a warning and the run stays green:
-
-```bash
-# Create a Cloudflare API token with the "Edit Cloudflare Workers" template, then:
-gh secret set CLOUDFLARE_API_TOKEN   --repo ghostery/plausible-mcp   # paste the token
-gh secret set CLOUDFLARE_ACCOUNT_ID  --repo ghostery/plausible-mcp   # from `wrangler whoami`
-```
-
-After that, merging to `ghostery` deploys automatically. Local `pnpm deploy` still works for
-out-of-band deploys.
+Deploys are done by hand (`pnpm deploy`) — there is no auto-deploy on push.
 
 ### Connecting a client (per team member)
 
