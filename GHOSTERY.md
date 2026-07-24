@@ -63,33 +63,45 @@ cherry-pick when the upstream merge arrives.
 
 ## Deployment
 
-Deploy the Cloudflare Worker from the `ghostery` branch:
+We run the **BYOK `/mcp` endpoint only** — no Cloudflare Access, no shared key, no OAuth.
+Each team member points their MCP client at the Worker and passes their **own** Plausible
+API key via `Authorization: Bearer`. Access control is that key: only people with Plausible
+access to the site can query.
+
+Deploy the Cloudflare Worker from the `ghostery` branch (`pnpm deploy` is overridden here to a
+plain `wrangler deploy` — upstream's script uploads sourcemaps to *Sentry's* Sentry org, which
+we neither have access to nor need):
 
 ```bash
+npx wrangler login          # once, against Ghostery's Cloudflare account
 pnpm install
-pnpm deploy   # wrangler deploy + Sentry sourcemap upload
+pnpm deploy                 # = npx wrangler deploy
 ```
 
-### Ghostery deployment config
+First deploy lands on `plausible-mcp.<account>.workers.dev`. That URL is all the team needs.
+To front it with `plausible-mcp.ghostery.com` instead, put the zone on Cloudflare and uncomment
+the `routes` block in `wrangler.toml`.
 
-`wrangler.toml` on this branch is set to Ghostery values. Items marked `TODO(ghostery)` still
-need real values before the first `/internal` (managed-connector) deploy:
+No secrets are required for `/mcp`. Optionally set `PLAUSIBLE_DEFAULT_SITE_ID` in `wrangler.toml`
+so callers can omit `site_id` (the whole team queries one site).
 
-- `routes` — the custom domain fronting the Worker (`plausible-mcp.ghostery.com`, TBD).
-- `ALLOWED_EMAIL_DOMAIN` — `ghostery.com` (email-domain gate for `/internal`, enforced in code).
-- `CF_ACCESS_TEAM_DOMAIN` — Ghostery's Cloudflare Access team domain (`https://<team>.cloudflareaccess.com`).
-- `CF_ACCESS_AUD` — the Application Audience tag of Ghostery's `/internal` Access app.
+### Connecting a client (per team member)
 
-Secrets (set out-of-band, never committed):
+Each person gets their own [Plausible API key](https://plausible.io/docs/stats-api) and runs:
 
 ```bash
-wrangler secret put PLAUSIBLE_API_KEY   # Ghostery's shared Plausible key (used by /internal)
-wrangler secret put SENTRY_DSN          # optional — the Worker's own telemetry; unset = disabled
+claude mcp add --transport http plausible https://<worker-host>/mcp \
+  --header "Authorization: Bearer <their-plausible-api-key>"
 ```
 
-The BYOK `/mcp` endpoint needs no shared key — each caller passes their own Plausible key via
-`Authorization: Bearer`. See the upstream [README](./README.md) "Setting up the `/internal` endpoint"
-for the full Cloudflare Access two-app setup.
+Cursor and MCP Inspector work the same way (HTTP transport + Bearer header).
+
+### /internal (SSO connector) — not deployed
+
+`/internal` (Cloudflare Access Managed OAuth, shared key, for Claude.ai/Cowork connectors) is
+left dormant. It fails closed until its `[vars]` are filled in and two Access apps front the
+host. Enable it only if the team needs the managed-connector path — see the upstream
+[README](./README.md) "Setting up the `/internal` endpoint" for the full two-app setup.
 
 ## Custom properties
 

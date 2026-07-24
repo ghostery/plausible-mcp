@@ -5,23 +5,24 @@ compatibility_date = "2025-01-01"
 # the JWKS fetch — fetch() can only reach public addresses, blocking SSRF.
 compatibility_flags = ["nodejs_compat_v2", "global_fetch_strictly_public"]
 
-# TODO(ghostery): confirm the custom domain routed to this Worker in Ghostery's Cloudflare.
-routes = [
-  { pattern = "plausible-mcp.ghostery.com", custom_domain = true }
-]
+# Ghostery runs the BYOK /mcp endpoint only, so no custom domain is required — the first
+# deploy lands on plausible-mcp.<account>.workers.dev. To front it with a custom domain,
+# put the zone on Cloudflare and uncomment (most-specific route wins):
+# routes = [
+#   { pattern = "plausible-mcp.ghostery.com", custom_domain = true }
+# ]
 
 [vars]
-# Email domain(s) allowed to sign in to /internal (comma-separated, "@" optional).
-# Enforced in code in ADDITION to the upstream Access policy. Self-hosting? Set your own.
+# Default Plausible site so BYOK callers never have to pass site_id (team queries one site).
+# TODO(ghostery): confirm the exact site domain as registered in Plausible, then uncomment.
+# PLAUSIBLE_DEFAULT_SITE_ID = "ghostery.com"
+
+# --- /internal (SSO connector) config — DORMANT ---
+# We deploy /mcp only; /internal fails closed without these + a Cloudflare Access app in
+# front. Left here as a stub in case Ghostery later enables the managed-connector endpoint.
 ALLOWED_EMAIL_DOMAIN = "ghostery.com"
-# Cloudflare Access team domain — verifies the Cf-Access-Jwt-Assertion JWKS + issuer.
-# Not a secret (public JWKS URL); must match the team the Access app lives in. No slash.
-# TODO(ghostery): verify Ghostery's Cloudflare Access team domain.
-CF_ACCESS_TEAM_DOMAIN = "https://ghostery.cloudflareaccess.com"
-# The Access application's Application Audience (AUD) tag — checked against the token
-# `aud`. Not a secret (an app identifier, not a credential).
-# TODO(ghostery): set the AUD of Ghostery's /internal Access application.
-CF_ACCESS_AUD = "REPLACE_WITH_GHOSTERY_ACCESS_AUD"
+# CF_ACCESS_TEAM_DOMAIN = "https://<team>.cloudflareaccess.com"  # no trailing slash
+# CF_ACCESS_AUD = "<Ghostery /internal Access application AUD>"
 
 [dev]
 port = 8787
