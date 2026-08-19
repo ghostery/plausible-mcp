@@ -139,6 +139,28 @@ describe("compare_periods tool", () => {
     }
   });
 
+  it("passes dimension filters to both calls", async () => {
+    const handler = getToolHandler(server, "compare_periods");
+    await handler({
+      site_id: "example.com",
+      period_a: "2024-01-01,2024-01-07",
+      period_b: "2024-01-08,2024-01-14",
+      dimension_filters: [
+        {
+          dimension: "visit:utm_campaign",
+          operator: "contains",
+          values: ["spring-launch"],
+        },
+      ],
+    });
+
+    for (const call of client.query.mock.calls) {
+      expect(call[0].filters).toEqual([
+        ["contains", "visit:utm_campaign", ["spring-launch"]],
+      ]);
+    }
+  });
+
   it("passes custom property filters to both calls", async () => {
     const handler = getToolHandler(server, "compare_periods");
     await handler({

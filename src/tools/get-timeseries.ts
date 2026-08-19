@@ -8,10 +8,12 @@ import {
   pageSchema,
   goalSchema,
   metricsSchema,
+  dimensionFiltersSchema,
   propertyFiltersSchema,
   DEFAULT_METRICS,
   buildPageFilter,
   buildGoalFilter,
+  buildDimensionFilters,
   buildPropertyFilters,
   queryResultOutputSchema,
   buildQueryStructuredContent,
@@ -53,6 +55,7 @@ export function register(
         page: pageSchema,
         metrics: metricsSchema,
         goal: goalSchema,
+        dimension_filters: dimensionFiltersSchema,
         property_filters: propertyFiltersSchema,
       },
     },
@@ -65,6 +68,9 @@ export function register(
         const filters: unknown[][] = [];
         if (args.page) filters.push(buildPageFilter(args.page));
         if (args.goal) filters.push(buildGoalFilter(args.goal));
+        if (args.dimension_filters?.length) {
+          filters.push(...buildDimensionFilters(args.dimension_filters));
+        }
         if (args.property_filters?.length) {
           filters.push(...buildPropertyFilters(args.property_filters));
         }

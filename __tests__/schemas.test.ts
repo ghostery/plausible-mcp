@@ -1,8 +1,10 @@
 import { describe, it, expect } from "vitest";
 import {
+  buildDimensionFilters,
   buildPropertyFilters,
   isCustomPropertyDimension,
   dimensionSchema,
+  dimensionFilterSchema,
   propertyFilterSchema,
 } from "../src/schemas.js";
 
@@ -60,6 +62,76 @@ describe("propertyFilterSchema", () => {
         values: ["pro"],
       }).success
     ).toBe(false);
+  });
+});
+
+describe("dimensionFilterSchema", () => {
+  it("defaults the operator to is", () => {
+    const parsed = dimensionFilterSchema.parse({
+      dimension: "visit:utm_campaign",
+      values: ["spring-launch"],
+    });
+    expect(parsed.operator).toBe("is");
+  });
+
+  it("rejects a custom property dimension", () => {
+    expect(
+      dimensionFilterSchema.safeParse({
+        dimension: "event:props:plan",
+        values: ["pro"],
+      }).success
+    ).toBe(false);
+  });
+
+  it("rejects an empty values array", () => {
+    expect(
+      dimensionFilterSchema.safeParse({
+        dimension: "visit:country",
+        values: [],
+      }).success
+    ).toBe(false);
+  });
+
+  it("rejects an unknown operator", () => {
+    expect(
+      dimensionFilterSchema.safeParse({
+        dimension: "visit:country",
+        operator: "matches",
+        values: ["US"],
+      }).success
+    ).toBe(false);
+  });
+});
+
+describe("buildDimensionFilters", () => {
+  it("defaults the operator to is", () => {
+    expect(
+      buildDimensionFilters([{ dimension: "visit:country", values: ["US"] }])
+    ).toEqual([["is", "visit:country", ["US"]]]);
+  });
+
+  it("passes through explicit operators and multiple values", () => {
+    expect(
+      buildDimensionFilters([
+        {
+          dimension: "visit:utm_campaign",
+          operator: "contains",
+          values: ["spring", "summer"],
+        },
+      ])
+    ).toEqual([["contains", "visit:utm_campaign", ["spring", "summer"]]]);
+  });
+
+  it("builds one filter per entry", () => {
+    expect(
+      buildDimensionFilters([
+        { dimension: "visit:source", operator: "is", values: ["Google"] },
+        { dimension: "visit:device", operator: "is_not", values: ["Mobile"] },
+      ])
+    ).toEqual([
+      ["is", "visit:source", ["Google"]],
+      ["is_not", "visit:device", ["Mobile"]],
+    ]);
   });
 });
 

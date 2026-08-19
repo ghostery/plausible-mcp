@@ -152,7 +152,7 @@ export const dimensionSchema = z
     'Dimension to group results by: a standard dimension (e.g. event:page, visit:source), or a custom event property as "event:props:<name>" (e.g. event:props:plan).'
   );
 
-export const PROPERTY_FILTER_OPERATORS = [
+export const FILTER_OPERATORS = [
   "is",
   "is_not",
   "contains",
@@ -161,7 +161,7 @@ export const PROPERTY_FILTER_OPERATORS = [
 
 export type PropertyFilter = {
   property: string;
-  operator?: (typeof PROPERTY_FILTER_OPERATORS)[number];
+  operator?: (typeof FILTER_OPERATORS)[number];
   values: string[];
 };
 
@@ -174,7 +174,7 @@ export const propertyFilterSchema = z.object({
       'Custom property name WITHOUT the "event:props:" prefix (e.g. "plan" targets event:props:plan)'
     ),
   operator: z
-    .enum(PROPERTY_FILTER_OPERATORS)
+    .enum(FILTER_OPERATORS)
     .default("is")
     .describe("Match operator: is, is_not, contains, contains_not (default: is)"),
   values: z
@@ -200,6 +200,41 @@ export function buildPropertyFilters(filters: PropertyFilter[]): unknown[][] {
     `${CUSTOM_PROPERTY_PREFIX}${f.property}`,
     f.values,
   ]);
+}
+
+export type DimensionFilter = {
+  dimension: (typeof VALID_DIMENSIONS)[number];
+  operator?: (typeof FILTER_OPERATORS)[number];
+  values: string[];
+};
+
+export const dimensionFilterSchema = z.object({
+  dimension: z
+    .enum(VALID_DIMENSIONS)
+    .describe('Dimension to filter on (e.g. "visit:utm_campaign", "visit:country")'),
+  operator: z
+    .enum(FILTER_OPERATORS)
+    .default("is")
+    .describe("Match operator: is, is_not, contains, contains_not (default: is)"),
+  values: z
+    .array(z.string())
+    .min(1)
+    .describe("One or more values to match the dimension against"),
+});
+
+export const dimensionFiltersSchema = z
+  .array(dimensionFilterSchema)
+  .describe(
+    'Filter by standard dimensions, e.g. [{ "dimension": "visit:utm_campaign", "operator": "contains", "values": ["spring-launch"] }]. Combined with other filters using AND. visit:* filters work with session metrics (visits, bounce_rate, visit_duration); for custom properties use property_filters instead.'
+  )
+  .optional();
+
+/**
+ * Build Plausible Stats API v2 filters for standard dimensions.
+ * Each entry becomes `[operator, "<dimension>", values]`.
+ */
+export function buildDimensionFilters(filters: DimensionFilter[]): unknown[][] {
+  return filters.map((f) => [f.operator ?? "is", f.dimension, f.values]);
 }
 
 /**

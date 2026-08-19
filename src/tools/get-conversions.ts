@@ -7,9 +7,11 @@ import {
   dateRangeSchema,
   pageSchema,
   goalSchema,
+  dimensionFiltersSchema,
   propertyFiltersSchema,
   buildPageFilter,
   buildGoalFilter,
+  buildDimensionFilters,
   buildPropertyFilters,
   queryResultOutputSchema,
   buildQueryStructuredContent,
@@ -34,6 +36,7 @@ export function register(
         date_range: dateRangeSchema,
         goal: goalSchema,
         page: pageSchema,
+        dimension_filters: dimensionFiltersSchema,
         property_filters: propertyFiltersSchema,
         breakdown_by_page: z
           .boolean()
@@ -50,6 +53,9 @@ export function register(
         const filters: unknown[][] = [];
         if (args.goal) filters.push(buildGoalFilter(args.goal));
         if (args.page) filters.push(buildPageFilter(args.page));
+        if (args.dimension_filters?.length) {
+          filters.push(...buildDimensionFilters(args.dimension_filters));
+        }
         if (args.property_filters?.length) {
           filters.push(...buildPropertyFilters(args.property_filters));
         }
