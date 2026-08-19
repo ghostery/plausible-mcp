@@ -172,6 +172,10 @@ This server wraps the [Plausible Stats API v2](https://plausible.io/docs/stats-a
 
 The `*_name` geography dimensions return human-readable names (e.g. "Canada"); the plain `visit:country`/`region`/`city` return ISO/Geoname codes.
 
+### Dimension Filters
+
+Every query tool accepts `dimension_filters` to filter by any standard dimension, e.g. `[{ "dimension": "visit:utm_campaign", "operator": "contains", "values": ["spring-launch"] }]`. Operators are `is`, `is_not`, `contains`, `contains_not`, and multiple entries combine with AND (also with the `page`, `goal`, and `property_filters` parameters). Unlike the event-level `page` filter, `visit:*` dimension filters combine with session metrics (`visits`, `bounce_rate`, `visit_duration`) — use them to count sessions per campaign, source, or country.
+
 ### Custom Properties
 
 Sites send their own [custom event properties](https://plausible.io/docs/custom-props/introduction), addressed as `event:props:<name>`. These are site-specific, so there's no fixed list.

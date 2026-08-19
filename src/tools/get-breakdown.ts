@@ -8,8 +8,10 @@ import {
   pageSchema,
   metricsSchema,
   dimensionSchema,
+  dimensionFiltersSchema,
   propertyFiltersSchema,
   buildPageFilter,
+  buildDimensionFilters,
   buildPropertyFilters,
   queryResultOutputSchema,
   buildQueryStructuredContent,
@@ -34,6 +36,7 @@ export function register(
         date_range: dateRangeSchema,
         dimension: dimensionSchema,
         page: pageSchema,
+        dimension_filters: dimensionFiltersSchema,
         property_filters: propertyFiltersSchema,
         metrics: metricsSchema,
         limit: z
@@ -54,6 +57,9 @@ export function register(
 
         const filters: unknown[][] = [];
         if (args.page) filters.push(buildPageFilter(args.page));
+        if (args.dimension_filters?.length) {
+          filters.push(...buildDimensionFilters(args.dimension_filters));
+        }
         if (args.property_filters?.length) {
           filters.push(...buildPropertyFilters(args.property_filters));
         }

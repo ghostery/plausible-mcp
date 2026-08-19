@@ -116,6 +116,40 @@ export const cases: EvalCase[] = [
     },
   },
   {
+    name: "filter a breakdown by a dimension value",
+    prompt:
+      "How many visits did each utm_campaign starting with `spring-launch` bring to example.com this month? Sessions, not visitors.",
+    expectedTool: "get_breakdown",
+    assertions: (args) => {
+      const errors: string[] = [];
+      if (args.dimension !== "visit:utm_campaign") {
+        errors.push(
+          `Expected dimension "visit:utm_campaign", got "${args.dimension}"`
+        );
+      }
+      const filters = args.dimension_filters as
+        | Array<{ dimension?: string; values?: string[] }>
+        | undefined;
+      const match = filters?.find(
+        (f) =>
+          f.dimension === "visit:utm_campaign" &&
+          (f.values ?? []).some((v) => v.includes("spring-launch"))
+      );
+      if (!match) {
+        errors.push(
+          `Expected a dimension_filters entry on visit:utm_campaign for "spring-launch", got ${JSON.stringify(args.dimension_filters)}`
+        );
+      }
+      const metrics = args.metrics as string[] | undefined;
+      if (metrics && !metrics.includes("visits")) {
+        errors.push(
+          `Expected metrics to include "visits", got ${JSON.stringify(metrics)}`
+        );
+      }
+      return errors;
+    },
+  },
+  {
     name: "filter timeseries by a custom property value",
     prompt:
       "Show daily visitors to example.com over the last 30 days, but only for events where the custom property `plan` is `pro`.",

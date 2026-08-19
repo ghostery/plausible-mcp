@@ -131,6 +131,27 @@ describe("get_timeseries tool", () => {
     );
   });
 
+  it("adds dimension filters", async () => {
+    const handler = getToolHandler(server, "get_timeseries");
+    await handler({
+      site_id: "example.com",
+      date_range: "7d",
+      dimension_filters: [
+        {
+          dimension: "visit:utm_campaign",
+          operator: "contains",
+          values: ["spring-launch"],
+        },
+      ],
+    });
+
+    expect(client.query).toHaveBeenCalledWith(
+      expect.objectContaining({
+        filters: [["contains", "visit:utm_campaign", ["spring-launch"]]],
+      })
+    );
+  });
+
   it("adds custom property filters alongside page filters", async () => {
     const handler = getToolHandler(server, "get_timeseries");
     await handler({
